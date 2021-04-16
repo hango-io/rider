@@ -1,0 +1,75 @@
+static_resources:
+  listeners:
+  - name: main
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 80
+    filter_chains:
+    - filters:
+      - name: envoy.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          codec_type: auto
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains:
+              - "*"
+              # Plugin config here applies to the VirtualHost
+              #per_filter_config:
+              #  com.netease.resty:
+              #    plugins:
+              #      - name: example
+              #        config: {}
+              routes:
+              - match:
+                  prefix: "/"
+                route: 
+                  cluster: web_service
+                typed_per_filter_config:
+                  proxy.filters.http.rider:
+                    "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
+                    plugins:
+                      # Plugin config here applies to the Route
+                      - name: ua-restriction
+                        config:
+                          denylist:
+                          - bot
+          http_filters:
+          - name: proxy.filters.http.rider
+            typed_config:
+              "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.FilterConfig
+              plugin:
+                vm_config:
+                  package_path: "/usr/local/lib/rider/?/init.lua;/usr/local/lib/rider/?.lua;"
+                code:
+                  local:
+                    filename: /usr/local/lib/rider/plugins/ua-restriction/ua-restriction.lua
+                name: ua-restriction
+                config: {}
+          - name: envoy.router
+            typed_config: {}
+
+  clusters:
+  - name: web_service
+    connect_timeout: 0.25s
+    type: strict_dns # static
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: web_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: web_service
+                port_value: 80
+admin:
+  access_log_path: "/dev/null"
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 8001

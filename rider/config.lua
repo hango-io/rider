@@ -16,7 +16,7 @@ ffi.cdef[[
     int envoy_http_lua_ffi_get_route_configuration(ContextBase* context, envoy_lua_ffi_str_t* buffer);
 ]]
 
-local VALIDATE_OK = 0 
+local VALIDATE_OK = 0
 local VALIDATE_FAIL = 1
 exports.VALIDATE_OK = VALIDATE_OK
 exports.VALIDATE_FAIL = VALIDATE_FAIL
