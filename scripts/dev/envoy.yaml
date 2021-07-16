@@ -19,25 +19,60 @@ static_resources:
               domains:
               - "*"
               # Plugin config here applies to the VirtualHost
-              #per_filter_config:
-              #  com.netease.resty:
-              #    plugins:
-              #      - name: example
-              #        config: {}
+              #
+              # typed_per_filter_config:
+              #   proxy.filters.http.rider:
+              #     "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
+              #     plugins:
               routes:
               - match:
-                  prefix: "/"
+                  prefix: "/static-to-header"
+                route: 
+                  cluster: web_service
+                # Plugin config here applies to the Route 
+                #
+                # plugins is a list of plugin route configs. Each entry has a name and its config.
+                # The filter will look up the list by order given a plugin name, and use the first match entry.
+                typed_per_filter_config:
+                  proxy.filters.http.rider:
+                    "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
+                    plugins:
+                      - name: echo
+                        config:
+                          message: "Lua is awesome!"
+                          source: Static
+                          destination: Header
+                          header_name: x-echo-foo
+              - match:
+                  prefix: "/external-to-body"
                 route: 
                   cluster: web_service
                 typed_per_filter_config:
                   proxy.filters.http.rider:
                     "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
                     plugins:
-                      # Plugin config here applies to the Route
-                      - name: ua-restriction
+                      - name: echo
                         config:
-                          denylist:
-                          - bot
+                          external_service: example_service
+                          external_service_authority: example.com
+                          source: External
+                          destination: Body
+              - match:
+                  prefix: "/body-to-body"
+                route: 
+                  cluster: web_service
+                typed_per_filter_config:
+                  proxy.filters.http.rider:
+                    "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
+                    plugins:
+                      - name: echo
+                        config:
+                          source: Body
+                          destination: Body
+              - match:
+                  prefix: "/"
+                route: 
+                  cluster: web_service
           http_filters:
           - name: proxy.filters.http.rider
             typed_config:
@@ -47,16 +82,19 @@ static_resources:
                   package_path: "/usr/local/lib/rider/?/init.lua;/usr/local/lib/rider/?.lua;"
                 code:
                   local:
-                    filename: /usr/local/lib/rider/plugins/ua-restriction/ua-restriction.lua
-                name: ua-restriction
-                config: {}
+                    filename: /usr/local/lib/rider/plugins/echo/echo.lua
+                name: echo
+                config:
+                  message: "C++ is awesome!"
+                  source: Static
+                  destination: Body
           - name: envoy.router
             typed_config: {}
 
   clusters:
   - name: web_service
-    connect_timeout: 0.25s
-    type: strict_dns # static
+    connect_timeout: 1s
+    type: strict_dns
     lb_policy: round_robin
     load_assignment:
       cluster_name: web_service
@@ -66,6 +104,20 @@ static_resources:
             address:
               socket_address:
                 address: web_service
+                port_value: 80
+  - name: example_service
+    connect_timeout: 1s
+    type: strict_dns
+    lb_policy: round_robin
+    dns_lookup_family: V4_ONLY
+    load_assignment:
+      cluster_name: example_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: example.com
                 port_value: 80
 admin:
   access_log_path: "/dev/null"

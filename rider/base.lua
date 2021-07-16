@@ -60,6 +60,12 @@ function _M.get_context_handle()
   return getfenv(0)._envoy_context
 end
 
+-- FFI function return codes.
 _M.FFI_OK = 0
+_M.FFI_BadContext = -1
+_M.FFI_NotFound = -2
+_M.FFI_BadArgument = -3
+_M.FFI_Unsupported = -4
+
 
 return _M

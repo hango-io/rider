@@ -3,9 +3,10 @@ services:
 
   proxy:
     build:
-      context: .
-      dockerfile: Dockerfile-proxy
+      context: ../..
+      dockerfile: ./scripts/dev/Dockerfile-proxy
     volumes:
+      - ../..:/usr/local/lib/rider
       - ./envoy.yaml:/etc/envoy.yaml
     networks:
       - envoymesh
