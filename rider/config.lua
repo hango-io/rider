@@ -1,11 +1,14 @@
 local ffi = require("ffi")
 local cjson = require("cjson")
+local base = require("rider.base")
+
 local cjson_decode = cjson.decode
 local C = ffi.C
 local ffi_new = ffi.new
 local ffi_str = ffi.string
-local base = require("rider.base")
 local get_context_handle = base.get_context_handle
+local FFI_OK = base.FFI_OK
+local FFI_NotFound = base.FFI_NotFound
 
 local exports = {}
 
@@ -50,14 +53,14 @@ function envoy.get_base_config()
         if base_config.validate_error ~= nil then
             error(base_config.validate_error, 2)
         end
-        return base_config.data.config
+        return base_config.data
     end
 
     local context = get_context_handle()
 
     local buffer = ffi_new("envoy_lua_ffi_str_t[1]")
     local rc = C.envoy_http_lua_ffi_get_configuration(context, buffer)
-    if rc ~= base.FFI_OK then
+    if rc ~= FFI_OK then
         error("error get base config: "..rc)
     end
 
@@ -93,7 +96,12 @@ function envoy.get_route_config()
 
     local buffer = ffi_new("envoy_lua_ffi_str_t[1]")
     local rc = C.envoy_http_lua_ffi_get_route_configuration(context, buffer)
-    if rc ~= base.FFI_OK then
+
+    if rc == FFI_NotFound then
+        return nil
+    end
+
+    if rc ~= FFI_OK then
         error("error get route config: "..rc)
     end
 
