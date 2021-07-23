@@ -41,6 +41,7 @@ end
 
 local c_buf_type = ffi.typeof("char[?]")
 
+-- From https://github.com/openresty/lua-resty-core/blob/v0.1.22/lib/resty/core/base.lua#L182
 function _M.get_string_buf(size, must_alloc)
     if size > str_buf_size or must_alloc then
         return ffi_new(c_buf_type, size)
