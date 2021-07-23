@@ -58,19 +58,6 @@ function handler:on_request(conf, handle)
 end
 ```
 
-### envoy.req.get_query()
-
-获取所有 query 参数
-
-Return
-
-- a table, key/value is name/value of query parameter
-- a empty table if no query parameter exists
-
-Note
-
-- 最多返回 100 个 query 参数
-
 ### envoy.req.get_body()
 
 获取 request body, 该方法会使 coroutine yield 直至获取到所有 body
@@ -107,10 +94,10 @@ Return
 - a string for the value
 - nil if not found
 
-例如, 获取下面配置中的 `qz_api_id` 
+例如, 获取下面配置中的 `api_id` 
 
 ``` lua
-envoy.req.get_metadata("qz_api_id", "com.netease.metadatahub")
+envoy.req.get_metadata("api_id", "metadatahub")
 ```
 
 ``` yaml
@@ -206,7 +193,7 @@ Return
 
 - No return value
 
-## envoy.ctx
+## envoy.stream.shared
 
 用于保存临时变量，在请求结束时被释放。通常用于在 request 阶段存储一些信息,在 response 阶段引用
 
@@ -216,17 +203,17 @@ local envoy = envoy
 local get_req_headers = envoy.req.get_headers
 
 function handler:on_request(conf, handle)
-    envoy.ctx.original_headers = get_req_headers()
+    envoy.stream.shared.original_headers = get_req_headers()
 
     -- Then modify headers
 end
 
 function handler:on_response(conf, handle)
-    local original_headers = envoy.ctx.original_headers
+    local original_headers = envoy.stream.shared.original_headers
 end
 ```
 
-`envoy.ctx` 生命周期不能超过请求的生命周期, 像下面的代码会引起异常
+`envoy.stream.shared` 生命周期不能超过请求的生命周期, 像下面的代码会引起异常
 
 ```lua
 local envoy = envoy
@@ -234,7 +221,7 @@ local envoy = envoy
 local foo
 
 function handler:on_request(conf, handle)
-    foo = envoy.ctx
+    foo = envoy.stream.shared
 end
 
 function handler:on_response(conf, handle)
@@ -242,7 +229,7 @@ function handler:on_response(conf, handle)
 end
 ```
 
-## envoy.httpcall(cluster, headers, body, timeout)
+## envoy.httpCall(cluster, headers, body, timeout)
 
 发送异步 http 请求, coroutine 会 yield 直到请求返回
 
@@ -304,8 +291,6 @@ Usage
 
 ## envoy.filelog(msg)
 
-通过环境变量 `TRACE_LOG_PATH=/xxx.log` 可以让 envoy 启动时创建日志文件，之后就可以使用该 api 来写入日志
-
 Parameter
 
 - msg(string, required): message
@@ -319,10 +304,6 @@ Usage
 ``` lua
     envoy.filelog("write to file")
 ```
-
-## envoy.skip_on_response()
-
-在 `on_request` 阶段调用该函数，则 `on_response` 阶段会跳过
 
 ## envoy.streaminfo 
 
@@ -340,7 +321,7 @@ Usage
 envoy.streaminfo.start_time() --- 1591168355117
 ```
 
-### envoy.streaminfo.nowms()
+### envoy.streaminfo.current_time_milliseconds()
 
 Current time in milliseconds.
 
@@ -351,7 +332,7 @@ Return
 Usage
 
 ``` lua
-envoy.streaminfo.nowms() --- 1591168355453
+envoy.streaminfo.current_time_milliseconds() --- 1591168355453
 ```
 
 ### envoy.streaminfo.downstream_local_address()
@@ -416,11 +397,11 @@ envoy.streaminfo.upstream_host() --- 127.0.0.1:8000
 
 通过下面的函数可以利用 envoy 的日志接口打印信息(msg is string type)
 
-- logErr(msg)
-- logWarn(msg)
-- logInfo(msg)
-- logDebug(msg)
-- logTrace(msg)
+- envoy.logErr(msg)
+- envoy.logWarn(msg)
+- envoy.logInfo(msg)
+- envoy.logDebug(msg)
+- envoy.logTrace(msg)
 
 ``` lua
 local logInfo = envoy.logInfo

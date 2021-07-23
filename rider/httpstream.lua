@@ -19,10 +19,18 @@ ffi.cdef[[
     int envoy_http_lua_ffi_get_header_map_value(ContextBase* ctx, int source, const char* key, int key_len, envoy_lua_ffi_str_t* value);
     int envoy_http_lua_ffi_set_header_map_value(ContextBase* ctx, int source, const char* key, int key_len, const char* value, int value_len);
     int envoy_http_lua_ffi_remove_header_map_value(ContextBase* ctx, int source, const char* key, int key_len);
-    int envoy_http_lua_ffi_get_query_parameters(ContextBase* ctx, int source, envoy_lua_ffi_string_pairs* buf);
+    int envoy_http_lua_ffi_get_query_parameters(ContextBase* ctx, envoy_lua_ffi_string_pairs* buf);
     int envoy_http_lua_ffi_get_shared_table(ContextBase* ctx);
-    //int envoy_http_lua_ffi_req_get_metadata(RequestContext* r, const char* key, size_t key_len,
-    //                                        const char* filter_name, size_t filter_name_len, envoy_http_lua_ffi_str_t* value);
+    int envoy_http_lua_ffi_req_get_metadata(ContextBase* r, const char* key, size_t key_len,
+                                            const char* filter_name, size_t filter_name_len, envoy_http_lua_ffi_str_t* value);
+
+    int64_t envoy_http_lua_ffi_streaminfo_start_time(ContextBase *r);
+    const char* envoy_http_lua_ffi_upstream_host(ContextBase *r);
+    const char* envoy_http_lua_ffi_upstream_cluster(ContextBase *r);
+    const char* envoy_http_lua_ffi_downstream_local_address(ContextBase *r);
+    const char* envoy_http_lua_ffi_downstream_remote_address(ContextBase *r);
+    int64_t envoy_http_lua_ffi_get_current_time_milliseconds(ContextBase *r);
+    void envoy_http_lua_ffi_file_log(ContextBase *r, const char *buf, size_t len);
 ]]
 
 local table_elt_type = ffi.typeof("envoy_lua_ffi_table_elt_t*")
@@ -76,7 +84,7 @@ local function get_headers(source)
 
     local rc = C.envoy_http_lua_ffi_get_header_map(ctx, source, pairs_buf)
     if rc ~= FFI_OK then
-        error("error get headers")
+        error("error get headers: "..tonumber(rc))
     end
 
     local result = {}
@@ -192,4 +200,188 @@ end
 
 function envoy.resp.remove_header(key)
     return remove_header_map_value(SOURCE_RESPONSE, key)
+end
+
+local MAX_QUERY_ARGS_DEFAULT = 100
+local MIN_QUERY_ARGS = 1
+local MAX_QUERY_ARGS = 100
+
+function envoy.req.get_query_parameters(max_args)
+    local ctx = get_context_handle()
+    if not ctx then
+        error("no context")
+    end
+
+    if max_args == nil then
+        max_args = MAX_QUERY_ARGS_DEFAULT
+    else
+        if type(max_args) ~= "number" then
+            error("max_args must be a number", 2)
+        end
+
+        if max_args < MIN_QUERY_ARGS then
+            error("max_args must be >= " .. MIN_QUERY_ARGS, 2)
+        end
+
+        if max_args > MAX_QUERY_ARGS then
+            error("max_args must be <= " .. MAX_QUERY_ARGS, 2)
+        end
+    end
+
+    local raw_buf = ffi_new("envoy_lua_ffi_table_elt_t[?]", max_args)
+    local pairs_buf = ffi_new("envoy_lua_ffi_string_pairs[1]", { [0] = {raw_buf, 0, max_args} })
+
+    local rc = C.envoy_http_lua_ffi_get_query_parameters(r, pairs_buf)
+
+    if rc ~= FFI_OK then
+        error("error get queries: "..tonumber(rc))
+    end
+
+    if rc == 0 then
+        local queries = {}
+        local n = pairs_buf.size
+        local buf = pairs_buf.data
+        for i = 0, n - 1 do
+            local h = buf[i]
+
+            local key = h.key
+            key = ffi_str(key.data, key.len)
+
+            local val = h.value
+            val = ffi_str(val.data, val.len)
+
+            local existing = queries[key]
+            if existing then
+                if type(existing) == "table" then
+                    existing[#existing + 1] = val
+                else
+                    queries[key] = {existing, val}
+                end
+
+            else
+                queries[key] = val
+            end
+
+            queries[key] = val
+        end
+
+        return queries
+    end
+
+    return {}
+end
+
+function envoy.streaminfo.upstream_cluster()
+    local ctx = get_context_handle()
+    if not ctx then
+        error("no context")
+    end
+
+    local res = C.envoy_http_lua_ffi_upstream_cluster(ctx)
+    if res == nil then
+        return nil
+    end
+
+    return ffi_str(res)
+end
+
+function envoy.streaminfo.upstream_host()
+    local ctx = get_context_handle()
+    if not ctx then
+        error("no context")
+    end
+
+    local res = C.envoy_http_lua_ffi_upstream_host(ctx)
+    if res == nil then
+        return nil
+    end
+
+    return ffi_str(res)
+end
+
+function envoy.streaminfo.downstream_local_address()
+    local ctx = get_context_handle()
+    if not ctx then
+        error("no context")
+    end
+
+    local res = C.envoy_http_lua_ffi_downstream_local_address(ctx)
+    if res == nil then
+        return ""
+    end
+
+    return ffi_str(res)
+end
+
+function envoy.streaminfo.downstream_remote_address()
+    local ctx = get_context_handle()
+    if not ctx then
+        error("no context")
+    end
+
+    local res = C.envoy_http_lua_ffi_downstream_remote_address(ctx)
+    if res == nil then
+        return ""
+    end
+
+    return ffi_str(res)
+end
+
+function envoy.streaminfo.start_time()
+    local ctx = get_context_handle()
+    if not ctx then
+        error("no context")
+    end
+
+    return tonumber(C.envoy_http_lua_ffi_start_time(ctx))
+end
+
+function envoy.nowms()
+    local ctx = get_context_handle()
+    if not ctx then
+        error("no context")
+    end
+
+    return tonumber(C.envoy_http_lua_ffi_get_current_time_milliseconds(ctx))
+end
+
+function envoy.filelog(msg)
+    local ctx = get_context_handle()
+    if not ctx then
+        error("no context")
+    end
+
+    if type(msg) ~= "string" then
+        error("msg must be a string", 2)
+    end
+
+    C.envoy_http_lua_ffi_file_log(ctx, msg, #msg);
+end
+
+function envoy.req.get_metadata(key, filter_name)
+    local r = get_request()
+    if not r then
+        error("no request found")
+    end
+
+    if type(key) ~= "string" then
+        error("metadata key must be a string", 2)
+    end
+
+    if not filter_name then
+        error("filter name is required")
+    end
+
+    if type(filter_name) ~= "string" then
+        error("filter name must be a string", 2)
+    end
+
+    local value = ffi_new("envoy_http_lua_ffi_str_t[1]")
+    local rc = C.envoy_http_lua_ffi_req_get_metadata(r, key, #key, filter_name, #filter_name, value)
+
+    if rc == FFI_OK then
+        return ffi_str(value[0].data, value[0].len)
+    end
+
+    return nil
 end
