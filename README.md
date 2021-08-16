@@ -41,7 +41,7 @@ The design of Rider comes from these awesome projects:
 - [Kong](https://github.com/Kong/kong): the SDK API style is from OpenResty and Kong's PDK.
 
 Rider is started from an internal project at Netease. The original goal is to allow users write Lua plugins for Envoy API Gateway, like Kong plugins.
-The first version was written by [XuXing Zeng](https://github.com/zengyuxing007), and then rewritten by [Tong Cai](https://github.com/caitong93) and [BaiPing Wang](https://github.com/wbpcode).
+The first version was written by [YuXing Zeng](https://github.com/zengyuxing007), and then rewritten by [Tong Cai](https://github.com/caitong93) and [BaiPing Wang](https://github.com/wbpcode).
 
 The latest version of Rider refers to [spec](https://github.com/proxy-wasm/spec/tree/master/abi-versions/vNEXT) and implementation of Wasm filter.
 It's a design goal to provide a consistent user exprrience as Wasm filter.
