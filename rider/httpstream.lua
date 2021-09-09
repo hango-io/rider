@@ -21,8 +21,7 @@ ffi.cdef[[
     int envoy_http_lua_ffi_remove_header_map_value(ContextBase* ctx, int source, const char* key, int key_len);
     int envoy_http_lua_ffi_get_query_parameters(ContextBase* ctx, envoy_lua_ffi_string_pairs* buf);
     int envoy_http_lua_ffi_get_shared_table(ContextBase* ctx);
-    int envoy_http_lua_ffi_req_get_metadata(ContextBase* r, const char* key, size_t key_len,
-                                            const char* filter_name, size_t filter_name_len, envoy_http_lua_ffi_str_t* value);
+    int envoy_http_lua_ffi_get_metadata(ContextBase* ctx, envoy_lua_ffi_str_t* filter_name, envoy_lua_ffi_str_t* key,  envoy_lua_ffi_str_t* value);
 
     int64_t envoy_http_lua_ffi_streaminfo_start_time(ContextBase *r);
     const char* envoy_http_lua_ffi_upstream_host(ContextBase *r);
@@ -359,9 +358,9 @@ function envoy.filelog(msg)
 end
 
 function envoy.req.get_metadata(key, filter_name)
-    local r = get_request()
-    if not r then
-        error("no request found")
+    local ctx = get_context_handle()
+    if not ctx then
+        error("no context")
     end
 
     if type(key) ~= "string" then
@@ -375,9 +374,11 @@ function envoy.req.get_metadata(key, filter_name)
     if type(filter_name) ~= "string" then
         error("filter name must be a string", 2)
     end
-
-    local value = ffi_new("envoy_http_lua_ffi_str_t[1]")
-    local rc = C.envoy_http_lua_ffi_req_get_metadata(r, key, #key, filter_name, #filter_name, value)
+    
+    local filter_name_ = ffi_new("envoy_lua_ffi_str_t[1]", { [0] = {#filter_name, filter_name} })
+    local key_ = ffi_new("envoy_lua_ffi_str_t[1]", { [0] = {#key, key} })
+    local value = ffi_new("envoy_lua_ffi_str_t[1]")
+    local rc = C.envoy_http_lua_ffi_get_metadata(ctx, filter_name_, key_, value)
 
     if rc == FFI_OK then
         return ffi_str(value[0].data, value[0].len)

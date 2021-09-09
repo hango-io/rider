@@ -153,6 +153,12 @@ function echoHandler:on_request()
   local config = get_config()
   local shared = envoy.stream.shared
 
+  local metadata = envoy.req.get_metadata("api_id", "proxy.filters.http.rider")
+  if metadata ~= nil then
+    envoy.respond({[":status"] = 200}, metadata)
+    return
+  end
+
   get_message_from_source(config, shared)
 
   if config.destination == ENUM_DESTINATION.Body then
