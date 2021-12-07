@@ -49,10 +49,10 @@ end
 function bodyHandler:on_response_header()
     local header = envoy.resp.get_header("test")
     if header == nil then
-        envoy.logDebug("no resp_header");
-        return
+      envoy.logDebug("no resp_header");
+    else
+      envoy.logDebug("resp_header: "..header);
     end
-    envoy.logDebug("resp_header: "..header);
 
     local headers, body2 = envoy.httpCall(
       "web_service",

@@ -130,6 +130,26 @@ Return
 
 - No return value
 
+### envoy.req.set_headers(headers)
+
+设置所有 header
+
+Parameter
+
+- headers: table, header table
+
+Return
+
+- No return value
+
+```lua
+local set_request_headers = envoy.req.set_headers
+
+function handler:on_request_header()
+    set_request_headers({[":path"] = "/haha", [":method"] = "GET"})
+end
+```
+
 ### envoy.req.clear_header(name)
 
 移除指定的 header

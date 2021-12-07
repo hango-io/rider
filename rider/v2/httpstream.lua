@@ -16,6 +16,7 @@ ffi.cdef[[
     int envoy_http_lua_ffi_v2_get_header_map(int source, envoy_lua_ffi_string_pairs* buffer);
     int envoy_http_lua_ffi_v2_get_header_map_size(int source);
     int envoy_http_lua_ffi_v2_get_header_map_value(int source, const char* key, int key_len, envoy_lua_ffi_str_t* value);
+    int envoy_http_lua_ffi_v2_set_header_map(int source, envoy_lua_ffi_string_pairs* buffer);
     int envoy_http_lua_ffi_v2_set_header_map_value(int source, const char* key, int key_len, const char* value, int value_len);
     int envoy_http_lua_ffi_v2_remove_header_map_value(int source, const char* key, int key_len);
     int envoy_http_lua_ffi_v2_get_query_parameters(envoy_lua_ffi_string_pairs* buf);
@@ -102,6 +103,34 @@ local function get_header_map_value(source, key)
     return ffi_str(buffer[0].data, buffer[0].len)
 end
 
+local function set_headers(source, headers)
+    if type(headers) ~= "table" then
+        error("headers must be a table", 2)
+    end
+
+    local length = 0
+    for key, value in pairs(headers) do 
+        length = length + 1
+    end
+    local raw_buf = ffi_new("envoy_lua_ffi_table_elt_t[?]", length)
+    local pairs_buf = ffi_new("envoy_lua_ffi_string_pairs[1]", { [0] = {raw_buf, length, length} })
+
+    local index = 0
+    for key, value in pairs(headers) do 
+        pairs_buf[0].data[index].key.data = key
+        pairs_buf[0].data[index].key.len = #key
+        pairs_buf[0].data[index].value.data = value
+        pairs_buf[0].data[index].value.len = #value
+        index = index + 1
+    end
+
+    local rc = C.envoy_http_lua_ffi_v2_set_header_map(source, pairs_buf)
+    if rc ~= FFI_OK then
+        error("error set headers: "..tonumber(rc))
+    end
+
+end
+
 local function set_header_map_value(source, key, value)
     if type(key) ~= "string" then
         error("header name must be a string", 2)
@@ -150,6 +179,14 @@ end
 
 function envoy.resp.get_header(key)
     return get_header_map_value(SOURCE_RESPONSE, key)
+end
+
+function envoy.req.set_headers(headers)
+    return set_headers(SOURCE_REQUEST, headers)
+end
+
+function envoy.resp.set_headers(headers)
+    return set_headers(SOURCE_RESPONSE, headers)
 end
 
 function envoy.req.set_header(key, value)
