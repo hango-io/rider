@@ -40,6 +40,31 @@ Return
 - a string for header value
 - nil if not exist 
 
+### envoy.req.get_header_size(name)
+
+获取指定 header 的 value 数量
+
+Parameter
+
+- name: header name
+
+Return
+
+- a int for header size
+
+### envoy.req.get_header_index(name, index)
+
+获取指定 header 的 第 index 个 value
+
+Parameter
+
+- name: header name
+- index: header index
+
+Return
+
+- a string for header value at index
+- nil if not exist 
 
 ### envoy.req.get_headers()
 
@@ -192,6 +217,32 @@ Return
 
 - a string for header value
 - nil if not exist
+
+### envoy.resp.get_header_size(name)
+
+获取指定 header 的 value 数量
+
+Parameter
+
+- name: header name
+
+Return
+
+- a int for header size
+
+### envoy.resp.get_header_index(name, index)
+
+获取指定 header 的 第 index 个 value
+
+Parameter
+
+- name: header name
+- index: header index
+
+Return
+
+- a string for header value at index
+- nil if not exist 
 
 ### envoy.resp.get_headers()
 

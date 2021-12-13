@@ -16,6 +16,8 @@ ffi.cdef[[
     int envoy_http_lua_ffi_v2_get_header_map(int source, envoy_lua_ffi_string_pairs* buffer);
     int envoy_http_lua_ffi_v2_get_header_map_size(int source);
     int envoy_http_lua_ffi_v2_get_header_map_value(int source, const char* key, int key_len, envoy_lua_ffi_str_t* value);
+    int envoy_http_lua_ffi_v2_get_header_map_value_size(int source, const char* key, int key_len);
+    int envoy_http_lua_ffi_v2_get_header_map_value_index(int source, const char* key, int key_len, envoy_lua_ffi_str_t* value, int index);
     int envoy_http_lua_ffi_v2_set_header_map(int source, envoy_lua_ffi_string_pairs* buffer);
     int envoy_http_lua_ffi_v2_set_header_map_value(int source, const char* key, int key_len, const char* value, int value_len);
     int envoy_http_lua_ffi_v2_remove_header_map_value(int source, const char* key, int key_len);
@@ -103,6 +105,27 @@ local function get_header_map_value(source, key)
     return ffi_str(buffer[0].data, buffer[0].len)
 end
 
+local function get_header_map_value_size(source, key)
+    if type(key) ~= "string" then
+        error("header name must be a string", 2)
+    end
+
+    return C.envoy_http_lua_ffi_v2_get_header_map_value_size(source, key, #key)
+end
+
+local function get_header_map_value_index(source, key, index)
+    if type(key) ~= "string" then
+        error("header name must be a string", 2)
+    end
+
+    local buffer = ffi_new("envoy_lua_ffi_str_t[1]")
+    local rc = C.envoy_http_lua_ffi_v2_get_header_map_value_index(source, key, #key, buffer, index)
+    if rc ~= FFI_OK then
+        return nil
+    end
+    return ffi_str(buffer[0].data, buffer[0].len)
+end
+
 local function set_headers(source, headers)
     if type(headers) ~= "table" then
         error("headers must be a table", 2)
@@ -177,8 +200,24 @@ function envoy.req.get_header(key)
     return get_header_map_value(SOURCE_REQUEST, key)
 end
 
+function envoy.req.get_header_size(key)
+    return get_header_map_value_size(SOURCE_REQUEST, key)
+end
+
+function envoy.req.get_header_index(key, index)
+    return get_header_map_value_index(SOURCE_REQUEST, key, index)
+end
+
 function envoy.resp.get_header(key)
     return get_header_map_value(SOURCE_RESPONSE, key)
+end
+
+function envoy.resp.get_header_size(key)
+    return get_header_map_value_size(SOURCE_RESPONSE, key)
+end
+
+function envoy.resp.get_header_index(key, index)
+    return get_header_map_value_index(SOURCE_RESPONSE, key, index)
 end
 
 function envoy.req.set_headers(headers)
