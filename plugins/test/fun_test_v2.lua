@@ -24,13 +24,9 @@ function bodyHandler:on_request_header()
       nil,
       5000)
     envoy.logDebug("httpcall_req_body1: "..body);
-
-
 end
 
 function bodyHandler:on_request_body()
-
-
     local headers, body2 = envoy.httpCall(
       "web_service",
       {
@@ -40,7 +36,7 @@ function bodyHandler:on_request_body()
       },
       nil,
       5000)
-    envoy.logDebug("httpcall_resp_body3: "..body2);
+    envoy.logDebug("httpcall_req_body2: "..body2);
 
     envoy.respond({[":status"] = 200}, "ddddd")
 
@@ -83,7 +79,7 @@ function bodyHandler:on_response_body()
       },
       nil,
       5000)
-    envoy.logDebug("httpcall_resp_body3: "..body2);
+    envoy.logDebug("httpcall_resp_body4: "..body2);
 end
 
 return bodyHandler

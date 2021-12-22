@@ -142,6 +142,20 @@ virtual_hosts:
           svc_id: "svc_id_test"
 ```
 
+###  envoy.req.get_dynamic_metadata(key, filter_name)
+
+获取 filter 中的 动态 metadata , 目前只支持获取 `string` 和 `integer`
+
+Parameter
+
+- key:  string, key specifies key of the value
+- filter_name: string, filter_name specifies from which filter to get dynamic metadata
+
+Return
+
+- a string for the value
+- nil if not found
+
 ### envoy.req.set_header(name, value)
 
 设置一个 header,  如果原来存在则覆盖
