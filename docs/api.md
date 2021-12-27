@@ -40,6 +40,31 @@ Return
 - a string for header value
 - nil if not exist 
 
+### envoy.req.get_header_size(name)
+
+获取指定 header 的 value 数量
+
+Parameter
+
+- name: header name
+
+Return
+
+- a int for header size
+
+### envoy.req.get_header_index(name, index)
+
+获取指定 header 的 第 index 个 value
+
+Parameter
+
+- name: header name
+- index: header index
+
+Return
+
+- a string for header value at index
+- nil if not exist 
 
 ### envoy.req.get_headers()
 
@@ -117,6 +142,20 @@ virtual_hosts:
           svc_id: "svc_id_test"
 ```
 
+###  envoy.req.get_dynamic_metadata(key, filter_name)
+
+获取 filter 中的 动态 metadata , 目前只支持获取 `string` 和 `integer`
+
+Parameter
+
+- key:  string, key specifies key of the value
+- filter_name: string, filter_name specifies from which filter to get dynamic metadata
+
+Return
+
+- a string for the value
+- nil if not found
+
 ### envoy.req.set_header(name, value)
 
 设置一个 header,  如果原来存在则覆盖
@@ -129,6 +168,26 @@ Parameter
 Return
 
 - No return value
+
+### envoy.req.set_headers(headers)
+
+设置所有 header
+
+Parameter
+
+- headers: table, header table
+
+Return
+
+- No return value
+
+```lua
+local set_request_headers = envoy.req.set_headers
+
+function handler:on_request_header()
+    set_request_headers({[":path"] = "/haha", [":method"] = "GET"})
+end
+```
 
 ### envoy.req.clear_header(name)
 
@@ -172,6 +231,32 @@ Return
 
 - a string for header value
 - nil if not exist
+
+### envoy.resp.get_header_size(name)
+
+获取指定 header 的 value 数量
+
+Parameter
+
+- name: header name
+
+Return
+
+- a int for header size
+
+### envoy.resp.get_header_index(name, index)
+
+获取指定 header 的 第 index 个 value
+
+Parameter
+
+- name: header name
+- index: header index
+
+Return
+
+- a string for header value at index
+- nil if not exist 
 
 ### envoy.resp.get_headers()
 
