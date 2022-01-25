@@ -435,18 +435,31 @@ end
 
 function envoy.define_metric(metric_type, metric_name)
     if not metric_name then
-        error("filter name is required")
+        error("metric name is required")
     end
 
     if type(metric_name) ~= "string" then
-        error("filter name must be a string", 2)
+        error("metric name must be a string", 2)
     end
 
     local metric_name_ = ffi_new("envoy_lua_ffi_str_t[1]", { [0] = {#metric_name, metric_name} })
     return C.envoy_http_lua_ffi_v2_define_metric(metric_type, metric_name_)
+end
 
 function envoy.increment_metric(metric_id, offset)
-    lcoal rc = C.envoy_http_lua_ffi_v2_increment_metric(metric_id, offset)
+    local rc = C.envoy_http_lua_ffi_v2_increment_metric(metric_id, offset)
     if rc ~= FFI_OK then
         error("increment_metric error", 2)
     end
+end
+
+function envoy.record_metric(metric_id, value)
+    local rc = C.envoy_http_lua_ffi_v2_record_metric(metric_id, value)
+    if rc ~= FFI_OK then
+        error("record_metric error", 2)
+    end
+end
+
+function envoy.get_metric(metric_id)
+    return C.envoy_http_lua_ffi_v2_get_metric(metric_id)
+end
