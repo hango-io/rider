@@ -38,6 +38,7 @@ ffi.cdef[[
     const char* envoy_http_lua_ffi_v2_downstream_remote_address();
     int64_t envoy_http_lua_ffi_v2_get_current_time_milliseconds();
     void envoy_http_lua_ffi_v2_file_log(const char *buf, size_t len);
+    void envoy_http_lua_ffi_v2_clear_route_cache();
 ]]
 
 local table_elt_type = ffi.typeof("envoy_lua_ffi_table_elt_t*")
@@ -462,4 +463,8 @@ end
 
 function envoy.get_metric(metric_id)
     return C.envoy_http_lua_ffi_v2_get_metric(metric_id)
+end
+
+function envoy.req.clear_route_cache()
+    C.envoy_http_lua_ffi_v2_clear_route_cache()
 end
