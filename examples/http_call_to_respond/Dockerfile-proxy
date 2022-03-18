@@ -1,0 +1,2 @@
+FROM rider:local-dev
+ENTRYPOINT /usr/local/bin/envoy -c /etc/envoy-http-call-to-respond.yaml -l debug --service-cluster proxy
