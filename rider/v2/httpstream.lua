@@ -26,6 +26,10 @@ ffi.cdef[[
     int envoy_http_lua_ffi_v2_get_metadata(envoy_lua_ffi_str_t* filter_name, envoy_lua_ffi_str_t* key,  envoy_lua_ffi_str_t* value);
     int envoy_http_lua_ffi_v2_get_dynamic_metadata_value(envoy_lua_ffi_str_t* filter_name, envoy_lua_ffi_str_t* key,  envoy_lua_ffi_str_t* value);
     int envoy_http_lua_ffi_v2_get_body(int source, envoy_lua_ffi_str_t* body);
+    int envoy_http_lua_ffi_v2_define_metric(int metric_type, envoy_lua_ffi_str_t* metric_name);
+    int envoy_http_lua_ffi_v2_increment_metric(int metric_id, int offset);
+    int envoy_http_lua_ffi_v2_record_metric(int metric_id, int value);
+    int envoy_http_lua_ffi_v2_get_metric(int metric_id);
 
     int64_t envoy_http_lua_ffi_v2_streaminfo_start_time();
     const char* envoy_http_lua_ffi_v2_upstream_host();
@@ -34,6 +38,7 @@ ffi.cdef[[
     const char* envoy_http_lua_ffi_v2_downstream_remote_address();
     int64_t envoy_http_lua_ffi_v2_get_current_time_milliseconds();
     void envoy_http_lua_ffi_v2_file_log(const char *buf, size_t len);
+    void envoy_http_lua_ffi_v2_clear_route_cache();
 ]]
 
 local table_elt_type = ffi.typeof("envoy_lua_ffi_table_elt_t*")
@@ -427,4 +432,39 @@ end
 
 function envoy.resp.get_body()
     return get_body_value(SOURCE_RESPONSE)
+end
+
+function envoy.define_metric(metric_type, metric_name)
+    if not metric_name then
+        error("metric name is required")
+    end
+
+    if type(metric_name) ~= "string" then
+        error("metric name must be a string", 2)
+    end
+
+    local metric_name_ = ffi_new("envoy_lua_ffi_str_t[1]", { [0] = {#metric_name, metric_name} })
+    return C.envoy_http_lua_ffi_v2_define_metric(metric_type, metric_name_)
+end
+
+function envoy.increment_metric(metric_id, offset)
+    local rc = C.envoy_http_lua_ffi_v2_increment_metric(metric_id, offset)
+    if rc ~= FFI_OK then
+        error("increment_metric error", 2)
+    end
+end
+
+function envoy.record_metric(metric_id, value)
+    local rc = C.envoy_http_lua_ffi_v2_record_metric(metric_id, value)
+    if rc ~= FFI_OK then
+        error("record_metric error", 2)
+    end
+end
+
+function envoy.get_metric(metric_id)
+    return C.envoy_http_lua_ffi_v2_get_metric(metric_id)
+end
+
+function envoy.req.clear_route_cache()
+    C.envoy_http_lua_ffi_v2_clear_route_cache()
 end

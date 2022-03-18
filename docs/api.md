@@ -494,3 +494,70 @@ local logInfo = envoy.logInfo
 logInfo("hello envoy")
 ```
 
+## Metric
+
+### envoy.define_metric(metric_type, metric_name)
+
+Define metric.
+
+Parameter
+
+- metric_type: int, 0 for Counter, 1 for Gauge, 2 for Histogram
+- metric_name: string, metric name
+
+Return
+
+- int, >0 for metric id, <0 for error
+
+### envoy.increment_metric(metric_id, offset)
+
+Increment metric.
+
+Parameter
+
+- metric_id: int, metric_id return from envoy.define_metric
+- offset: int, offset
+
+Return
+
+- No return value
+
+### envoy.record_metric(metric_id, value)
+
+Record metric.
+
+Parameter
+
+- metric_id: int, metric_id return from envoy.define_metric
+- value: int, value
+
+Return
+
+- No return value
+
+### envoy.get_metric(metric_id)
+
+Record metric.
+
+Parameter
+
+- metric_id: int, metric_id return from envoy.define_metric
+
+Return
+
+- int, >0 for metric value, <0 for error
+
+Usage
+
+``` lua
+    local metric_id = envoy.define_metric(0, "test")
+    if metric_id < 0 then
+        error("define metric errror")
+    end
+    envoy.increment_metric(metric_id, 1)
+    envoy.record_metric(metric_id, 1)
+    local metric_value = envoy.get_metric(metric_id)
+    if metric_value < 0 then
+        error("get metric errror")
+    end
+```

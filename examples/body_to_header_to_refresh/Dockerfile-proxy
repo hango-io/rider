@@ -1,0 +1,2 @@
+FROM rider:local-dev
+ENTRYPOINT /usr/local/bin/envoy -c /etc/body_to_header_to_refresh.yaml -l debug --service-cluster proxy

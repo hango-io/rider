@@ -26,50 +26,6 @@ static_resources:
               #     plugins:
               routes:
               - match:
-                  prefix: "/static-to-header"
-                route: 
-                  cluster: web_service
-                # Plugin config here applies to the Route 
-                #
-                # plugins is a list of plugin route configs. Each entry has a name and its config.
-                # The filter will look up the list by order given a plugin name, and use the first match entry.
-                typed_per_filter_config:
-                  proxy.filters.http.rider:
-                    "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
-                    plugins:
-                      - name: echo
-                        config:
-                          message: "Lua is awesome!"
-                          source: Static
-                          destination: Header
-                          header_name: x-echo-foo
-              - match:
-                  prefix: "/external-to-body"
-                route: 
-                  cluster: web_service
-                typed_per_filter_config:
-                  proxy.filters.http.rider:
-                    "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
-                    plugins:
-                      - name: echo
-                        config:
-                          external_service: example_service
-                          external_service_authority: example.com
-                          source: External
-                          destination: Body
-              - match:
-                  prefix: "/body-to-body"
-                route: 
-                  cluster: web_service
-                typed_per_filter_config:
-                  proxy.filters.http.rider:
-                    "@type": type.googleapis.com/proxy.filters.http.rider.v3alpha1.RouteFilterConfig
-                    plugins:
-                      - name: echo
-                        config:
-                          source: Body
-                          destination: Body
-              - match:
                   prefix: "/"
                 route: 
                   cluster: web_service
@@ -82,12 +38,9 @@ static_resources:
                   package_path: "/usr/local/lib/rider/?/init.lua;/usr/local/lib/rider/?.lua;"
                 code:
                   local:
-                    filename: /usr/local/lib/rider/examples/echo/echo.lua
-                name: echo
-                config:
-                  message: "C++ is awesome!"
-                  source: Static
-                  destination: Body
+                    filename: /usr/local/lib/rider/examples/http_call_to_respond/http_call_to_respond.lua
+                name: http_call_to_respond
+
           - name: envoy.router
             typed_config: {}
 

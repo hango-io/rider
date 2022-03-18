@@ -10,7 +10,7 @@ ARG RIDER_HOME=/usr/local/lib/rider
 
 RUN mkdir -p ${RIDER_HOME}
 COPY rider ${RIDER_HOME}/rider
-COPY plugins ${RIDER_HOME}/plugins
+COPY examples ${RIDER_HOME}/examples
 COPY rider-1.0.0-1.rockspec ${RIDER_HOME}/rider-1.0.0-1.rockspec
 
 RUN cd $RIDER_HOME && luarocks make
