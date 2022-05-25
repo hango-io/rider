@@ -5,7 +5,7 @@
 首先所有的 HTTP 插件都是 `http_connection_manager` 这个 L4 插件的子插件。
 当我们说新增一个 HTTP 插件时，指的是在 `http_connection_manager` 的 `http_filters` 中增加一项。
 在新增项的 `typed_config` 中可以填写该 HTTP 插件的配置。这里的配置对整个 Listener 接收的流量都会生效。
-如果用户想要为不同的 Virtualost，不同的 Route 做不同的配置，Envoy 在 VirtualHost 和 Route 中提供了 `typed_per_filter_config`，
+如果用户想要为不同的 VirtualHost，不同的 Route 做不同的配置，Envoy 在 VirtualHost 和 Route 中提供了 `typed_per_filter_config`，
 这是一个 map，key 为插件的名字，value 为配置数据。插件可以按照自身需求，去取不同层级的配置。
 
 ## Lua plugin 配置
