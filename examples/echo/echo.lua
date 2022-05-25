@@ -177,7 +177,7 @@ function echoHandler:on_response()
 
   local dest_type = config.destination
   if dest_type == ENUM_DESTINATION.Header then
-    set_resp_header(config.header_name, shared.message)
+    set_resp_header(config.header_name, config.message)
   end
 end
 
