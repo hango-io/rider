@@ -41,7 +41,7 @@ static_resources:
                     filename: /usr/local/lib/rider/examples/http_call_to_respond/http_call_to_respond.lua
                 name: http_call_to_respond
 
-          - name: envoy.router
+          - name: envoy.filters.http.router
             typed_config: {}
 
   clusters:
