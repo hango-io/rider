@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-BASE_ENVOY_IMAGE=${BASE_ENVOY_IMAGE:-"hangoio/envoy-proxy:2fbe07d"}
+BASE_ENVOY_IMAGE=${BASE_ENVOY_IMAGE:-"hangoio/envoy-proxy:v0.0.1-b9696c2"}
 
 BASE_IMAGE=${BASE_ENVOY_IMAGE} IMAGE_TAG=rider:local-dev make build
 
