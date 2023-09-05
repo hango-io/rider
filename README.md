@@ -26,6 +26,7 @@ Rider contains two components:
 
 [SDK](./docs/api.md)
 
+[Rider V2](./docs/rider_v2.md)
 
 ## TODO
 
