@@ -25,6 +25,7 @@ ffi.cdef[[
     int envoy_http_lua_ffi_v2_get_shared_table();
     int envoy_http_lua_ffi_v2_get_metadata(envoy_lua_ffi_str_t* filter_name, envoy_lua_ffi_str_t* key,  envoy_lua_ffi_str_t* value);
     int envoy_http_lua_ffi_v2_get_dynamic_metadata_value(envoy_lua_ffi_str_t* filter_name, envoy_lua_ffi_str_t* key,  envoy_lua_ffi_str_t* value);
+    int envoy_http_lua_ffi_v2_set_dynamic_metadata_value(envoy_lua_ffi_str_t* filter_name, envoy_lua_ffi_str_t* key,  envoy_lua_ffi_str_t* value);
     int envoy_http_lua_ffi_v2_get_body(int source, envoy_lua_ffi_str_t* body);
     int envoy_http_lua_ffi_v2_define_metric(int metric_type, envoy_lua_ffi_str_t* metric_name);
     int envoy_http_lua_ffi_v2_increment_metric(int metric_id, int offset);
@@ -416,6 +417,32 @@ function envoy.req.get_dynamic_metadata(key, filter_name)
     return nil
 end
 
+function envoy.req.set_dynamic_metadata(key, value, filter_name)
+    if type(key) ~= "string" then
+        error("metadata key must be a string", 2)
+    end
+
+    if type(value) ~= "string" then
+        error("metadata value must be a string", 2)
+    end
+
+    if not filter_name then
+        error("filter name is required")
+    end
+
+    if type(filter_name) ~= "string" then
+        error("filter name must be a string", 2)
+    end
+
+    local filter_name_ = ffi_new("envoy_lua_ffi_str_t[1]", { [0] = {#filter_name, filter_name} })
+    local key_ = ffi_new("envoy_lua_ffi_str_t[1]", { [0] = {#key, key} })
+    local value_ = ffi_new("envoy_lua_ffi_str_t[1]", { [0] = {#value, value} })
+    local rc = C.envoy_http_lua_ffi_v2_set_dynamic_metadata_value(filter_name_, key_, value_)
+
+    if rc ~= FFI_OK then
+        error("error set dynamic metadata")
+    end
+end
 
 local function get_body_value(source)
     local buffer = ffi_new("envoy_lua_ffi_str_t[1]")
