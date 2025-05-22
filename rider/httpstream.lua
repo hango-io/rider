@@ -230,7 +230,7 @@ function envoy.req.get_query_parameters(max_args)
     local raw_buf = ffi_new("envoy_lua_ffi_table_elt_t[?]", max_args)
     local pairs_buf = ffi_new("envoy_lua_ffi_string_pairs[1]", { [0] = {raw_buf, 0, max_args} })
 
-    local rc = C.envoy_http_lua_ffi_get_query_parameters(r, pairs_buf)
+    local rc = C.envoy_http_lua_ffi_get_query_parameters(ctx, pairs_buf)
 
     if rc ~= FFI_OK then
         error("error get queries: "..tonumber(rc))
@@ -238,8 +238,8 @@ function envoy.req.get_query_parameters(max_args)
 
     if rc == 0 then
         local queries = {}
-        local n = pairs_buf.size
-        local buf = pairs_buf.data
+        local n = pairs_buf[0].size
+        local buf = pairs_buf[0].data
         for i = 0, n - 1 do
             local h = buf[i]
 
