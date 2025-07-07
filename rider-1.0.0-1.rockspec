@@ -9,6 +9,7 @@ dependencies = {
   "inspect",
   "lua-cjson",
   "ljsonschema",
+  "sha2",
 }
 
 build = {
