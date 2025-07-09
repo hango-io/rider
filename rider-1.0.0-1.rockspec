@@ -10,6 +10,8 @@ dependencies = {
   "lua-cjson",
   "ljsonschema",
   "sha2",
+  "md5",
+  "base64",
 }
 
 build = {
