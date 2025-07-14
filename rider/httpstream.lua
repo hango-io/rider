@@ -29,7 +29,7 @@ ffi.cdef[[
     const char* envoy_http_lua_ffi_downstream_local_address(ContextBase *r);
     const char* envoy_http_lua_ffi_downstream_remote_address(ContextBase *r);
     int64_t envoy_http_lua_ffi_get_current_time_milliseconds(ContextBase *r);
-    void envoy_http_lua_ffi_file_log(ContextBase *r, const char *buf, size_t len);
+    int envoy_http_lua_ffi_file_log(ContextBase *r, const char *buf, size_t len);
 ]]
 
 local table_elt_type = ffi.typeof("envoy_lua_ffi_table_elt_t*")
@@ -354,7 +354,10 @@ function envoy.filelog(msg)
         error("msg must be a string", 2)
     end
 
-    C.envoy_http_lua_ffi_file_log(ctx, msg, #msg);
+    local rc = C.envoy_http_lua_ffi_file_log(ctx, msg, #msg);
+    if rc ~= FFI_OK then
+        error("file log failed", 2)
+    end
 end
 
 function envoy.req.get_metadata(key, filter_name)
