@@ -57,6 +57,25 @@ function handler:on_request(conf, handle)
 end
 ```
 
+### envoy.req.get_query_parameters(max_args)
+
+获取所有 query 参数
+
+Parameter
+
+- max_args: max query nums, default 100
+
+Return
+
+- a table, key is query name, value is query value
+
+Usage
+
+``` lua
+    local parameters = envoy.req.get_query_parameters()
+    for key, val in pairs(parameters) do INFO_LOG(key, val) end
+```
+
 ### envoy.req.get_body()
 
 获取 request body, 该方法会使 coroutine yield 直至获取到所有 body
